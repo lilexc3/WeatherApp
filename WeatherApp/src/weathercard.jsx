@@ -1,18 +1,14 @@
 import React from "react";
-import Statblock from "./statblock";
-import { useState } from "react";
+import StatBlock from "./statblock";
 
-const Weathercard = () => {
-  const [city, setCity] = useState("Moscow");
-  const [temp, setTemp] = useState(22);
-
+const WeatherCard = ({ city, temperature, weatherCode }) => {
   return (
-    <div>
-      <h2>City</h2>
-      <h1>25°C</h1>
-      <Statblock />
+    <div className="weather-card">
+      <h2>{city}</h2>
+      <StatBlock label="Temperature" value={temperature} unit="°C" />
+      <StatBlock label="Weather Code" value={weatherCode} unit="" />
     </div>
   );
 };
 
-export default Weathercard;
+export default WeatherCard;
