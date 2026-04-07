@@ -3,6 +3,7 @@ import WeatherCard from "./weathercard";
 
 const App = () => {
   const [city, setCity] = useState(null);
+  const [input, setInput] = useState("");
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
@@ -40,9 +41,12 @@ const App = () => {
     );
   }, []);
 
-  // 2. City name → weather
+  // 2. City → weather
   useEffect(() => {
     if (!city) return;
+
+    setWeather(null);
+    setError(null);
 
     async function load() {
       try {
@@ -59,10 +63,9 @@ const App = () => {
         const { latitude, longitude } = geo.results[0];
 
         const weatherRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode`,
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relativehumidity_2m`,
         );
-        const weatherData = await weatherRes.json();
-        setWeather(weatherData);
+        setWeather(await weatherRes.json());
       } catch (e) {
         setError("Failed to load weather: " + e.message);
       }
@@ -71,16 +74,47 @@ const App = () => {
     load();
   }, [city]);
 
-  if (error) return <p>Error: {error}</p>;
-  if (!city) return <p>Determining location...</p>;
-  if (!weather) return <p>Loading weather...</p>;
+  // Обработчик поиска
+  function handleSearch() {
+    const trimmed = input.trim();
+    if (trimmed) {
+      setCity(trimmed);
+      setInput("");
+    }
+  }
 
   return (
-    <WeatherCard
-      city={city}
-      temperature={weather.current.temperature_2m}
-      weatherCode={weather.current.weathercode}
-    />
+    <div className="app">
+      <div className="search-bar">
+        <input
+          type="text"
+          value={input}
+          placeholder="Enter city..."
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
+
+      {/* Состояния загрузки и ошибок */}
+      {error && <p className="error">{error}</p>}
+      {!error && !city && <p className="status">Determining location...</p>}
+      {!error && city && !weather && (
+        <p className="status">Loading weather...</p>
+      )}
+
+      {/* Карточка погоды */}
+      {weather && (
+        <WeatherCard
+          city={city}
+          temperature={weather.current.temperature_2m}
+          apparentTemperature={weather.current.apparent_temperature}
+          weatherCode={weather.current.weathercode}
+          windspeed={weather.current.windspeed_10m}
+          humidity={weather.current.relativehumidity_2m}
+        />
+      )}
+    </div>
   );
 };
 

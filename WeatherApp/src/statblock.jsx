@@ -1,5 +1,4 @@
 import React from "react";
-import { fetchWeatherApi } from "openmeteo";
 
 const StatBlock = ({ label, value, unit }) => {
   return (
